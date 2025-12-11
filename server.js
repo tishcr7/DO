@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 });
 
 // --- ENDPOINT 1: GET CUSTOMER DETAILS ---
-// Usage: /api/customer/Y022
+// Usage: /api/customer/A002
 app.get('/api/customer/:code', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
@@ -62,8 +62,8 @@ app.get('/api/customer/:code', async (req, res) => {
     }
 });
 
-// --- ENDPOINT 2: GET JOB ORDER DETAILS ---
-// Usage: /api/job/JO-25112642
+// --- ENDPOINT 2: GET JOB ORDER DETAILS (FIXED VERSION) ---
+// Usage: /api/job/25112642
 app.get('/api/job/:jobNo', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
@@ -73,10 +73,11 @@ app.get('/api/job/:jobNo', async (req, res) => {
                 SELECT TOP 1
                     P.LotNo AS JobOrder,
                     O.PONo,
-                    C.StkDesc AS Description,
-                    C.SizeWidth, C.SizeLength, C.SizeThick,
-                    C.Measurement,
-                    O.CustCode -- We fetch this to cross-check if needed
+                    -- FETCH THE 3 DESCRIPTION LINES (Fix for Invalid Column)
+                    C.StkDesc01, 
+                    C.StkDesc02, 
+                    C.StkDesc03,
+                    O.CustCode
                 FROM dbo.tblProd_Trans_PlanMs AS P
                 LEFT JOIN dbo.tblCS_Config_ProductNo AS C ON P.StkCode = C.StkCode
                 LEFT JOIN dbo.tblCS_Trans_OrderMs AS O ON P.OrderID = O.TransID
@@ -85,13 +86,18 @@ app.get('/api/job/:jobNo', async (req, res) => {
 
         if (result.recordset.length > 0) {
             const r = result.recordset[0];
+            
+            // COMBINE THE DESCRIPTIONS
+            // We join them with a space so they look good in the input box
+            const fullDesc = [r.StkDesc01, r.StkDesc02, r.StkDesc03]
+                             .filter(line => line && line.trim() !== '') // Remove empty lines
+                             .join(' '); 
+
             res.json({
                 success: true,
                 jobOrder: r.JobOrder,
                 poNumber: r.PONo || "-",
-                description: r.Description,
-                // Create a clean "Size" string (e.g., "10 x 20 x 0.05")
-                sizeString: `${r.SizeWidth} x ${r.SizeLength} x ${r.SizeThick}`,
+                description: fullDesc, // This now contains 01 + 02 + 03
                 custCode: r.CustCode
             });
         } else {
