@@ -22,6 +22,11 @@ const dbConfig = {
 app.get('/', (req, res) => {
     res.send("DO Maker API is Running 🚀");
 });
+// 2. Add a dedicated Health Check route (for Render)
+app.get('/health', (req, res) => {
+    // You can add logic here later (e.g., check DB connection)
+    res.status(200).send("OK");
+});
 
 // --- ENDPOINT 1: GET CUSTOMER DETAILS ---
 // Usage: /api/customer/A002
@@ -113,3 +118,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
