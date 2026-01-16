@@ -20,7 +20,7 @@ const dbConfig = {
 
 // --- HEALTH CHECK (For Render) ---
 app.get('/', (req, res) => {
-    res.send("API is Running");
+    res.send("DO Maker API is Running 🚀");
 });
 // 2. Add a dedicated Health Check route (for Render)
 app.get('/health', (req, res) => {
@@ -118,5 +118,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
 
 
